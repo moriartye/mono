@@ -383,6 +383,8 @@ namespace Mono.CSharp
 				//
 				string name = mb.Name;
 				kind = MemberKind.Method;
+				var mi = (MethodInfo) mb;
+				returnType = ImportType (mi.ReturnType, new DynamicTypeReader (mi.ReturnParameter));
 				if (tparams == null && !mb.DeclaringType.IsInterface && name.Length > 6) {
 					if ((mod & (Modifiers.STATIC | Modifiers.PUBLIC)) == (Modifiers.STATIC | Modifiers.PUBLIC)) {
 						if (name[2] == '_' && name[1] == 'p' && name[0] == 'o' && (mb.Attributes & MethodAttributes.SpecialName) != 0) {
@@ -391,7 +393,7 @@ namespace Mono.CSharp
 								kind = MemberKind.Operator;
 							}
 						}
-					} else if (parameters.IsEmpty && name == Destructor.MetadataName) {
+					} else if (parameters.IsEmpty && name == Destructor.MetadataName && returnType == module.Compiler.BuiltinTypes.Void) {
 						kind = MemberKind.Destructor;
 						if (declaringType.BuiltinType == BuiltinTypeSpec.Type.Object) {
 							mod &= ~Modifiers.OVERRIDE;
@@ -399,9 +401,6 @@ namespace Mono.CSharp
 						}
 					}
 				}
-
-				var mi = (MethodInfo) mb;
-				returnType = ImportType (mi.ReturnType, new DynamicTypeReader (mi.ReturnParameter));
 
 				// Cannot set to OVERRIDE without full hierarchy checks
 				// this flag indicates that the method could be override
